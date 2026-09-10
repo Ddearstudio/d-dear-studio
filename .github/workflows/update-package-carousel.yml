@@ -1,0 +1,38 @@
+name: Update package carousel wording
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-package-carousel.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update package wording
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          replacements = [
+              ('ภาพแบนเนอร์ 15 ภาพ', 'ภาพแบนเนอร์ / Carousel 15 ภาพ'),
+              ('ภาพแบนเนอร์ 25 ภาพ', 'ภาพแบนเนอร์ / Carousel 25 ภาพ'),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Missing expected text: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "D Dear Studio Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add Carousel to Growth and Pro packages"
+          git push
