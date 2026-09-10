@@ -1,0 +1,42 @@
+name: Update package banner counts
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-packages.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update Growth and Pro package copy
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          replacements = [
+              ('คอนเทนต์รวม 10 ชิ้น', 'คอนเทนต์รวม 19 ชิ้น'),
+              ('ภาพหรือ Carousel 6 ชิ้น', 'ภาพแบนเนอร์ 15 ภาพ'),
+              ('คอนเทนต์รวม 16 ชิ้น', 'คอนเทนต์รวม 31 ชิ้น'),
+              ('ภาพหรือ Carousel 10 ชิ้น', 'ภาพแบนเนอร์ 25 ภาพ'),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Missing expected text: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "D Dear Studio Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git commit -m "Update Growth and Pro banner quantities"
+          git push
